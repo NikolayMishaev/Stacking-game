@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- 
+1. Написать игру по добыче криптомонет на чистом js. В самом начале монету можно добыть только по нажатию на клавишу D(d). Далее монету можно отправить в стейкинг на определенное количество времени 30дн/60дн/90дн, после чего застейканные монеты будут "добывать" новые монеты по формуле (процент от x): (десятичный логарифм от x) * (коэффициент периода 20/35/50). Пусть 1 день в игре равен 1 секунде. После истечения периода стейкинга монеты возвращаются в кошелек вместе с добычей. Отправлять в стейкинг можно неограниченное количество раз одновременно. Учтите, что каждые 100 дней монеты в кошельке сгорают на процент, равный натуральному логарифму от вашего кол-ва монет в кошельке. HTML-разметку и стили можно менять как угодно, но основные контролы должны оставаться (сумма в кошельке, input select btn для стейкинга, таблица с информацией). Округляем суммы до 4 знака после запятой. input принимает только числа, при вводе числа больше чем сумма в кошельке - выводим ошибку в любом удобном вам формате.
+Используйте самописный локальный state. 
+2. Теперь пусть в вашем конфиге (config - объект, где будут храниться коэффициенты и настройки игры) 1день будет равен 0,4 секунды.
+Решаем у себя в IDE и выкладываем на github.
+
+нажали d(D) добавили монеты в сумму
+(процент от x): (десятичный логарифм от x) * (коэффициент периода 20/35/50).
+1 день равен 1 секунде.
+После истечения периода стейкинга монеты возвращаются в кошелек вместе с добычей. 
+ Отправлять в стейкинг можно неограниченное количество раз одновременно.
+ каждые 100 дней монеты в кошельке сгорают на процент
+ Округляем суммы до 4 знака после запятой
+ input принимает только числа
+ при вводе числа больше чем сумма в кошельке - выводим ошибку
+-->
+    <div class="amount">100</div>
+    <div class="staking">
+      <input type="text" placeholder="введи количество монет" />
+      <select placeholder="выбери период">
+        <option value="30d">30д</option>
+        <option value="60d">60д</option>
+        <option value="90d">90д</option>
+      </select>
+      <button>Отправить в стейкинг</button>
+    </div>
+    <table>
+      <tr>
+        <th>Сумма</th>
+        <th>Период</th>
+        <th>Оставшееся время</th>
+        <th>Сумма добычи (на данный момент)</th>
+      </tr>
+    </table>
+    <script>
+
+        const amount = document.querySelector('.amount'),
+              stake = document.querySelector('button'),
+              input = document.querySelector('input'),
+              table = document.querySelector('table'),
+              select = document.querySelector('select');
+
+        const config = {
+          amount: +amount.textContent,
+          objStakes : {},
+          currentStake: 0
+        };
+
+        function addCoins() {
+          config.amount += 100
+          render()
+        }
+
+      function deleteCoinsOneHunderedDays() {
+        config.amount *= (100 - Math.log(config.amount)) / 100
+          render()
+      }
+
+      function refreshStates() {
+        for (let key in config.objStakes) {
+          countStake(config.objStakes[`${key}`],key)
+        }
+      }
+
+      function countStake(obj,key) {
+        let currentRemTime = parseInt(obj.remainingTime);
+        if (currentRemTime === 26) {
+          obj.element.remove();
+          config.amount += obj.summPercent + obj.summAmount;
+          render();
+          delete config.objStakes[`${key}`];
+          config.currentStake--;
+          return
+        }
+        obj.remainingTime = --currentRemTime + 'd';
+        obj.summPercent += (Math.log10(obj.summAmount) * obj.index) / 100;
+        renderStake(obj)
+      }
+      function renderStake(obj) {
+  obj.element.querySelector('.time').textContent = obj.remainingTime;
+  obj.element.querySelector('.summ').textContent = obj.summPercent;
+}
+
+function render() {
+  amount.textContent = config.amount;
+}
+
+      function handleInput() {
+        const inputValue = input.value;
+        if (!+inputValue) {
+          console.log('введено не число!')
+          return
+        }
+        if (inputValue > config.amount) {
+          console.log('У вас нет такой суммы!')
+          return
+        }
+        if (inputValue < 1) {
+          console.log('Минимум можно положить 1 единицу криптовалюты')
+          return
+        }
+        config.amount -= inputValue;
+        render();
+        sendStaking(inputValue);
+      }
+
+      function sendStaking(stake) {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `
+        <tr>
+          <td>${stake}</td>
+          <td>${select.value}</td>
+          <td class="time">${select.value}</td>
+          <td class="summ">0</td>
+        </tr>`
+        tr.classList.add(`stak${++config.currentStake}`)
+        table.appendChild(tr);
+        const indexMatchingTable = {
+          '30d': 20,
+          '60d' : 35,
+          '90d' : 50
+        }
+        const newObj = {
+          element: document.querySelector(`.stak${config.currentStake}`),
+          totalTime: select.value,
+          remainingTime: select.value,
+          summAmount: +stake,
+          index: indexMatchingTable[select.value],
+          summPercent: 0
+        }
+        config.objStakes[`stak${config.currentStake}`] = newObj
+      }
+
+
+
+      document.addEventListener('keydown', e => (e.key === 'd' || e.key === "D") && addCoins() )
+      stake.addEventListener('click',handleInput)
+
+      // let timerPercent = setInterval(()=>deleteCoinsOneHunderedDays(), 100000);
+
+      let timerDays = setInterval(()=>refreshStates(), 1000);
+    </script>
+  </body>
+</html>
