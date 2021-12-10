@@ -67,15 +67,7 @@
 2. Теперь пусть в вашем конфиге (stateConfig - объект, где будут храниться коэффициенты и настройки игры) 1день будет равен 0,4 секунды.
 Решаем у себя в IDE и выкладываем на github.
 
-+ нажали d(D) добавили монеты в сумму
-(процент от x): (десятичный логарифм от x) * (коэффициент периода 20/35/50).
-+ 1 день равен 1 секунде.
-+ После истечения периода стейкинга монеты возвращаются в кошелек вместе с добычей. 
- + Отправлять в стейкинг можно неограниченное количество раз одновременно.
- + каждые 100 дней монеты в кошельке сгорают на процент
- + Округляем суммы до 4 знака после запятой
- + input принимает только числа
- при вводе числа больше чем сумма в кошельке - выводим ошибку
+каждое следующее нажатие d дает меньше дохода
 -->
     <main>
       <div class="message">ddddddddd
@@ -111,6 +103,7 @@
         amount: +amount.textContent,
         objStackes: {},
         currentStacke: 0,
+        stackSend: false
       };
 
       function showMessage(text) {
@@ -123,12 +116,20 @@
       }
 
       function addCoins() {
-        stateConfig.amount += 1;
+        if (stateConfig.stackSend) {
+          showMessage('После первой отправки монет в стейкинг, бесплатно получить их нельзя !')
+          return
+        }
+        if (stateConfig.amount > 10) {
+          showMessage('Вам не положено больше бесплатных монет !')
+          return
+        }
+        stateConfig.amount += stateConfig.amount > 5 ? .001/stateConfig.amount : 1;
         renderAmount();
       }
 
       function deleteCoinsOneHunderedDays() {
-        stateConfig.amount *= (100 - Math.log(stateConfig.amount)) / 100;
+        stateConfig.amount *= (100 - (Math.log(stateConfig.amount || 1))) / 100;
         renderAmount();
       }
 
@@ -166,18 +167,19 @@
       }
 
       function handleInput() {
+        if (!stateConfig.stackSend) stateConfig.stackSend = true;
         hideMessage()
         let inputValue = input.value;
         if (!+inputValue) {
-          showMessage("введено не число или 0 !");
+          showMessage("Введено не число или 0 !");
           return;
         }
         if (inputValue > stateConfig.amount) {
-          showMessage("У вас нет такой суммы!");
+          showMessage("У вас нет такой суммы !");
           return;
         }
         if (inputValue < 1.01) {
-          showMessage("Минимум можно положить 1.01 единицу криптовалюты");
+          showMessage("Минимум можно положить 1.01 единицу криптовалюты !");
           return;
         }
         inputValue = (+inputValue).toFixed(4);
