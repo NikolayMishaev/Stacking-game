@@ -5,6 +5,46 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 600px;
+        margin: auto;
+      }
+      main {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .amount {
+        flex: 1;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      table {
+        margin-top: 15px;
+        flex: 1;
+      }
+      tr {
+        display: flex;
+        text-align: center;
+      }
+      th,
+      td {
+        width: 15%;
+        border: 1px solid black;
+      }
+      th:last-child,
+      td:last-child {
+        flex: 1;
+      }
+    </style>
   </head>
   <body>
     <!-- 
@@ -23,131 +63,140 @@
  input принимает только числа
  при вводе числа больше чем сумма в кошельке - выводим ошибку
 -->
-    <div class="amount">100</div>
-    <div class="staking">
-      <input type="text" placeholder="введи количество монет" />
-      <select placeholder="выбери период">
-        <option value="30d">30д</option>
-        <option value="60d">60д</option>
-        <option value="90d">90д</option>
-      </select>
-      <button>Отправить в стейкинг</button>
-    </div>
-    <table>
-      <tr>
-        <th>Сумма</th>
-        <th>Период</th>
-        <th>Оставшееся время</th>
-        <th>Сумма добычи (на данный момент)</th>
-      </tr>
-    </table>
+    <main>
+      <div class="amount">0</div>
+      <div class="staking">
+        <input type="text" placeholder="введи количество монет" />
+        <select placeholder="выбери период">
+          <option value="30d">30д</option>
+          <option value="60d">60д</option>
+          <option value="90d">90д</option>
+        </select>
+        <button>Отправить в стейкинг</button>
+      </div>
+      <table>
+        <tr>
+          <th>Сумма</th>
+          <th>Период</th>
+          <th>Оставшееся время</th>
+          <th>Сумма добычи (на данный момент)</th>
+        </tr>
+      </table>
+    </main>
     <script>
+      const amount = document.querySelector(".amount"),
+        stake = document.querySelector("button"),
+        input = document.querySelector("input"),
+        table = document.querySelector("table"),
+        select = document.querySelector("select");
 
-        const amount = document.querySelector('.amount'),
-              stake = document.querySelector('button'),
-              input = document.querySelector('input'),
-              table = document.querySelector('table'),
-              select = document.querySelector('select');
+      const config = {
+        amount: +amount.textContent,
+        objStakes: {},
+        currentStake: 0,
+      };
 
-        const config = {
-          amount: +amount.textContent,
-          objStakes : {},
-          currentStake: 0
-        };
-
-        function addCoins() {
-          config.amount += 100
-          render()
-        }
+      function addCoins() {
+        config.amount += 1;
+        renderAmount();
+      }
 
       function deleteCoinsOneHunderedDays() {
-        config.amount *= (100 - Math.log(config.amount)) / 100
-          render()
+        config.amount *= (100 - Math.log(config.amount)) / 100;
+        renderAmount();
       }
 
       function refreshStates() {
         for (let key in config.objStakes) {
-          countStake(config.objStakes[`${key}`],key)
+          countStake(config.objStakes[`${key}`], key);
         }
       }
 
-      function countStake(obj,key) {
+      function countStake(obj, key) {
         let currentRemTime = parseInt(obj.remainingTime);
-        if (currentRemTime === 26) {
+        if (!currentRemTime) {
           obj.element.remove();
           config.amount += obj.summPercent + obj.summAmount;
-          render();
+          renderAmount();
           delete config.objStakes[`${key}`];
-          config.currentStake--;
-          return
+          return;
         }
-        obj.remainingTime = --currentRemTime + 'd';
+        obj.remainingTime = --currentRemTime + "d";
         obj.summPercent += (Math.log10(obj.summAmount) * obj.index) / 100;
-        renderStake(obj)
+        renderStake(obj);
       }
-      function renderStake(obj) {
-  obj.element.querySelector('.time').textContent = obj.remainingTime;
-  obj.element.querySelector('.summ').textContent = obj.summPercent;
-}
 
-function render() {
-  amount.textContent = config.amount;
-}
+      function renderStake(obj) {
+        obj.element.querySelector(".time").textContent = obj.remainingTime;
+        obj.element.querySelector(".summ").textContent =
+          obj.summPercent.toFixed(4);
+      }
+
+      function renderAmount() {
+        amount.textContent = config.amount.toFixed(4);
+      }
 
       function handleInput() {
-        const inputValue = input.value;
+        let inputValue = input.value;
         if (!+inputValue) {
-          console.log('введено не число!')
-          return
+          console.log("введено не число!");
+          return;
         }
         if (inputValue > config.amount) {
-          console.log('У вас нет такой суммы!')
-          return
+          console.log("У вас нет такой суммы!");
+          return;
         }
         if (inputValue < 1) {
-          console.log('Минимум можно положить 1 единицу криптовалюты')
-          return
+          console.log("Минимум можно положить 1 единицу криптовалюты");
+          return;
         }
+        inputValue = (+inputValue).toFixed(4);
         config.amount -= inputValue;
-        render();
+        renderAmount();
         sendStaking(inputValue);
       }
 
       function sendStaking(stake) {
-        let tr = document.createElement('tr');
+        let tr = document.createElement("tr");
         tr.innerHTML = `
         <tr>
           <td>${stake}</td>
           <td>${select.value}</td>
           <td class="time">${select.value}</td>
           <td class="summ">0</td>
-        </tr>`
-        tr.classList.add(`stak${++config.currentStake}`)
+        </tr>`;
+        tr.classList.add(`stak${++config.currentStake}`);
         table.appendChild(tr);
         const indexMatchingTable = {
-          '30d': 20,
-          '60d' : 35,
-          '90d' : 50
-        }
+          "30d": 20,
+          "60d": 35,
+          "90d": 50,
+        };
         const newObj = {
           element: document.querySelector(`.stak${config.currentStake}`),
           totalTime: select.value,
           remainingTime: select.value,
           summAmount: +stake,
           index: indexMatchingTable[select.value],
-          summPercent: 0
-        }
-        config.objStakes[`stak${config.currentStake}`] = newObj
+          summPercent: 0,
+        };
+        config.objStakes[`stak${config.currentStake}`] = newObj;
       }
 
+      document.addEventListener(
+        "keydown",
+        (e) => (e.key === "d" || e.key === "D") && addCoins()
+      );
 
+      stake.addEventListener("click", handleInput);
 
-      document.addEventListener('keydown', e => (e.key === 'd' || e.key === "D") && addCoins() )
-      stake.addEventListener('click',handleInput)
+      let timerPercent = setInterval(
+        () => deleteCoinsOneHunderedDays(),
+        100000
+      );
 
-      // let timerPercent = setInterval(()=>deleteCoinsOneHunderedDays(), 100000);
-
-      let timerDays = setInterval(()=>refreshStates(), 1000);
+      let timerDays = setInterval(() => refreshStates(), 1000);
+      
     </script>
   </body>
 </html>
