@@ -198,7 +198,8 @@
       function deleteCoinsOneHunderedDays() {
         stateConfig.daysPercent = 100;
         const currentAmount = stateConfig.amount;
-        stateConfig.amount *= (100 - Math.log(stateConfig.amount || 1)) / 100;
+        stateConfig.amount *=
+          (100 - Math.abs(Math.log(stateConfig.amount || 1))) / 100;
         let percent = currentAmount - stateConfig.amount;
         if (percent === 0) return;
         showMessage(
