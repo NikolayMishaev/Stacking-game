@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
+
       body {
         min-height: 100vh;
         display: flex;
@@ -44,6 +45,19 @@
       td:last-child {
         flex: 1;
       }
+      .message {
+        width: 100%;
+        text-align: center;
+        font-size: 17px;
+        margin-bottom: 25px;
+        color: red;
+        border: 1px dashed red;
+        padding: 10px;
+        border-radius: 30px;
+        opacity: 0;
+        transition: all 1s;
+      }
+
     </style>
   </head>
   <body>
@@ -64,6 +78,8 @@
  при вводе числа больше чем сумма в кошельке - выводим ошибку
 -->
     <main>
+      <div class="message">ddddddddd
+      </div>
       <div class="amount">0</div>
       <div class="staking">
         <input type="text" placeholder="введи количество монет" />
@@ -88,13 +104,23 @@
         buttonSendStacking = document.querySelector("button"),
         input = document.querySelector("input"),
         table = document.querySelector("table"),
-        select = document.querySelector("select");
+        select = document.querySelector("select"),
+        message = document.querySelector(".message");
 
       const stateConfig = {
         amount: +amount.textContent,
         objStackes: {},
         currentStacke: 0,
       };
+
+      function showMessage(text) {
+        message.textContent = text;
+        message.style.opacity = '1';
+      }
+
+      function hideMessage() {
+        message.style.opacity = '0';
+      }
 
       function addCoins() {
         stateConfig.amount += 1;
@@ -140,17 +166,18 @@
       }
 
       function handleInput() {
+        hideMessage()
         let inputValue = input.value;
         if (!+inputValue) {
-          console.log("введено не число или 0!");
+          showMessage("введено не число или 0 !");
           return;
         }
         if (inputValue > stateConfig.amount) {
-          console.log("У вас нет такой суммы!");
+          showMessage("У вас нет такой суммы!");
           return;
         }
         if (inputValue < 1.01) {
-          console.log("Минимум можно положить 1.01 единицу криптовалюты");
+          showMessage("Минимум можно положить 1.01 единицу криптовалюты");
           return;
         }
         inputValue = (+inputValue).toFixed(4);
