@@ -50,17 +50,17 @@
     <!-- 
 1. Написать игру по добыче криптомонет на чистом js. В самом начале монету можно добыть только по нажатию на клавишу D(d). Далее монету можно отправить в стейкинг на определенное количество времени 30дн/60дн/90дн, после чего застейканные монеты будут "добывать" новые монеты по формуле (процент от x): (десятичный логарифм от x) * (коэффициент периода 20/35/50). Пусть 1 день в игре равен 1 секунде. После истечения периода стейкинга монеты возвращаются в кошелек вместе с добычей. Отправлять в стейкинг можно неограниченное количество раз одновременно. Учтите, что каждые 100 дней монеты в кошельке сгорают на процент, равный натуральному логарифму от вашего кол-ва монет в кошельке. HTML-разметку и стили можно менять как угодно, но основные контролы должны оставаться (сумма в кошельке, input select btn для стейкинга, таблица с информацией). Округляем суммы до 4 знака после запятой. input принимает только числа, при вводе числа больше чем сумма в кошельке - выводим ошибку в любом удобном вам формате.
 Используйте самописный локальный state. 
-2. Теперь пусть в вашем конфиге (config - объект, где будут храниться коэффициенты и настройки игры) 1день будет равен 0,4 секунды.
+2. Теперь пусть в вашем конфиге (stateConfig - объект, где будут храниться коэффициенты и настройки игры) 1день будет равен 0,4 секунды.
 Решаем у себя в IDE и выкладываем на github.
 
-нажали d(D) добавили монеты в сумму
++ нажали d(D) добавили монеты в сумму
 (процент от x): (десятичный логарифм от x) * (коэффициент периода 20/35/50).
-1 день равен 1 секунде.
-После истечения периода стейкинга монеты возвращаются в кошелек вместе с добычей. 
- Отправлять в стейкинг можно неограниченное количество раз одновременно.
- каждые 100 дней монеты в кошельке сгорают на процент
- Округляем суммы до 4 знака после запятой
- input принимает только числа
++ 1 день равен 1 секунде.
++ После истечения периода стейкинга монеты возвращаются в кошелек вместе с добычей. 
+ + Отправлять в стейкинг можно неограниченное количество раз одновременно.
+ + каждые 100 дней монеты в кошельке сгорают на процент
+ + Округляем суммы до 4 знака после запятой
+ + input принимает только числа
  при вводе числа больше чем сумма в кошельке - выводим ошибку
 -->
     <main>
@@ -85,55 +85,57 @@
     </main>
     <script>
       const amount = document.querySelector(".amount"),
-        stake = document.querySelector("button"),
+        buttonSendStacking = document.querySelector("button"),
         input = document.querySelector("input"),
         table = document.querySelector("table"),
         select = document.querySelector("select");
 
-      const config = {
+      const stateConfig = {
         amount: +amount.textContent,
-        objStakes: {},
-        currentStake: 0,
+        objStackes: {},
+        currentStacke: 0,
       };
 
       function addCoins() {
-        config.amount += 1;
+        stateConfig.amount += 1;
         renderAmount();
       }
 
       function deleteCoinsOneHunderedDays() {
-        config.amount *= (100 - Math.log(config.amount)) / 100;
+        stateConfig.amount *= (100 - Math.log(stateConfig.amount)) / 100;
         renderAmount();
       }
 
       function refreshStates() {
-        for (let key in config.objStakes) {
-          countStake(config.objStakes[`${key}`], key);
+        for (let key in stateConfig.objStackes) {
+          countStacke(stateConfig.objStackes[`${key}`], key);
         }
       }
 
-      function countStake(obj, key) {
+      function countStacke(obj, key) {
         let currentRemTime = parseInt(obj.remainingTime);
         if (!currentRemTime) {
           obj.element.remove();
-          config.amount += obj.summPercent + obj.summAmount;
+          stateConfig.amount += obj.summPercent + obj.summAmount;
           renderAmount();
-          delete config.objStakes[`${key}`];
+          delete stateConfig.objStackes[`${key}`];
           return;
         }
         obj.remainingTime = --currentRemTime + "d";
-        obj.summPercent += (Math.log10(obj.summAmount) * obj.index) / 100;
-        renderStake(obj);
+        obj.summPercent +=
+          ((obj.summAmount / 100 / Math.log10(obj.summAmount)) * obj.index) /
+          parseInt(obj.totalTime);
+        renderStacke(obj);
       }
 
-      function renderStake(obj) {
+      function renderStacke(obj) {
         obj.element.querySelector(".time").textContent = obj.remainingTime;
         obj.element.querySelector(".summ").textContent =
           obj.summPercent.toFixed(4);
       }
 
       function renderAmount() {
-        amount.textContent = config.amount.toFixed(4);
+        amount.textContent = stateConfig.amount.toFixed(4);
       }
 
       function handleInput() {
@@ -142,7 +144,7 @@
           console.log("введено не число!");
           return;
         }
-        if (inputValue > config.amount) {
+        if (inputValue > stateConfig.amount) {
           console.log("У вас нет такой суммы!");
           return;
         }
@@ -151,21 +153,21 @@
           return;
         }
         inputValue = (+inputValue).toFixed(4);
-        config.amount -= inputValue;
+        stateConfig.amount -= inputValue;
         renderAmount();
-        sendStaking(inputValue);
+        sendStacking(inputValue);
       }
 
-      function sendStaking(stake) {
+      function sendStacking(stacke) {
         let tr = document.createElement("tr");
         tr.innerHTML = `
         <tr>
-          <td>${stake}</td>
+          <td>${stacke}</td>
           <td>${select.value}</td>
           <td class="time">${select.value}</td>
           <td class="summ">0</td>
         </tr>`;
-        tr.classList.add(`stak${++config.currentStake}`);
+        tr.classList.add(`stack${++stateConfig.currentStacke}`);
         table.appendChild(tr);
         const indexMatchingTable = {
           "30d": 20,
@@ -173,14 +175,14 @@
           "90d": 50,
         };
         const newObj = {
-          element: document.querySelector(`.stak${config.currentStake}`),
+          element: document.querySelector(`.stack${stateConfig.currentStacke}`),
           totalTime: select.value,
           remainingTime: select.value,
-          summAmount: +stake,
+          summAmount: +stacke,
           index: indexMatchingTable[select.value],
           summPercent: 0,
         };
-        config.objStakes[`stak${config.currentStake}`] = newObj;
+        stateConfig.objStackes[`stack${stateConfig.currentStacke}`] = newObj;
       }
 
       document.addEventListener(
@@ -188,7 +190,7 @@
         (e) => (e.key === "d" || e.key === "D") && addCoins()
       );
 
-      stake.addEventListener("click", handleInput);
+      buttonSendStacking.addEventListener("click", handleInput);
 
       let timerPercent = setInterval(
         () => deleteCoinsOneHunderedDays(),
@@ -196,7 +198,6 @@
       );
 
       let timerDays = setInterval(() => refreshStates(), 1000);
-      
     </script>
   </body>
 </html>
