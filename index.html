@@ -72,6 +72,7 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
+        flex: 2;
       }
       label {
         margin-right: 20px;
@@ -86,6 +87,15 @@
         width: 25%;
         font-weight: 600;
       }
+      .info-percent {
+        flex: 1;
+        text-align: center;
+      }
+      .day-percent {
+        color: red;
+        font-size: 16px;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body>
@@ -98,6 +108,10 @@
 каждое следующее нажатие d дает меньше дохода
 -->
     <main>
+      <div class="info-percent">
+        До следующего взятия процента осталось
+        <span class="day-percent">100</span> дней
+      </div>
       <div class="day-speed">
         <p>Выберите длительность одного дня в игре:</p>
         <label
@@ -143,7 +157,8 @@
             table = document.querySelector("table"),
             select = document.querySelector("select"),
             message = document.querySelector(".message"),
-            radioButtons = document.querySelectorAll(".radio");
+            radioButtons = document.querySelectorAll(".radio"),
+            daysPercent = document.querySelector(".day-percent");
 
       const stateConfig = {
         amount: +amount.textContent,
@@ -152,6 +167,7 @@
         stackSend: false,
         daysSpeed: 1000,
         timerDays: null,
+        daysPercent: 100,
       };
 
       function showMessage(text) {
@@ -180,15 +196,29 @@
       }
 
       function deleteCoinsOneHunderedDays() {
-        showMessage("Был изъят процент за 100 дней !");
+        stateConfig.daysPercent = 100;
+        const currentAmount = stateConfig.amount;
         stateConfig.amount *= (100 - Math.log(stateConfig.amount || 1)) / 100;
+        let percent = currentAmount - stateConfig.amount;
+        if (percent === 0) return;
+        showMessage(
+          `Был изъят процент за 100 дней в размере ${percent.toFixed(4)} !`
+        );
         renderAmount();
       }
 
       function refreshStates() {
+        refreshDaysPercent();
         for (let key in stateConfig.objStackes) {
           countStacke(stateConfig.objStackes[`${key}`], key);
         }
+      }
+
+      function refreshDaysPercent() {
+        stateConfig.daysPercent
+          ? stateConfig.daysPercent--
+          : deleteCoinsOneHunderedDays();
+        daysPercent.textContent = stateConfig.daysPercent;
       }
 
       function countStacke(obj, key) {
@@ -276,19 +306,22 @@
         );
       }
 
+      setTimeout(
+        () =>
+          showMessage(
+            'Нажмите клавишу "d" или "D" для получения беспланых монет.'
+          ),
+        500
+      );
+
+      radioButtons.forEach((i) => i.addEventListener("click", setSpeedDays));
+
       document.addEventListener(
         "keydown",
         (e) => (e.key === "d" || e.key === "D") && addCoins()
       );
 
       buttonSendStacking.addEventListener("click", handleInput);
-
-      radioButtons.forEach((i) => i.addEventListener("click", setSpeedDays));
-
-      let timerPercent = setInterval(
-        () => deleteCoinsOneHunderedDays(),
-        100000
-      );
 
       stateConfig.timerDays = setInterval(
         () => refreshStates(),
