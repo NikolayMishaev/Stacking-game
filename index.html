@@ -29,6 +29,7 @@
         font-size: 20px;
         font-weight: 600;
         color: blue;
+        margin: 0 20px;
       }
       table {
         margin-top: 15px;
@@ -84,7 +85,7 @@
         text-align: center;
         font-size: 18px;
         text-transform: uppercase;
-        width: 25%;
+        flex: 1;
         font-weight: 600;
       }
       .info-percent {
@@ -183,7 +184,7 @@
         message.style.opacity = "0";
       }
 
-      function addCoins(bigD) {
+      function addCoins(pressBigD) {
         if (stateConfig.stackSend) {
           showMessage(
             "После первой отправки монет в стейкинг, бесплатно получить их нельзя !"
@@ -195,7 +196,7 @@
           return;
         }
         stateConfig.amount +=
-          stateConfig.amount > 25 ? 0.5 / stateConfig.amount : bigD ? 10 : 1;
+          stateConfig.amount > 25 ? 0.5 / stateConfig.amount : pressBigD ? 10 : 1;
         renderAmount();
       }
 
@@ -250,7 +251,7 @@
       }
 
       function renderAmount() {
-        amount.textContent = stateConfig.amount.toFixed(4);
+        amount.textContent = Math.floor(stateConfig.amount);
       }
 
       function handleInput() {
