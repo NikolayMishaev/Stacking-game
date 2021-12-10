@@ -123,7 +123,8 @@
         }
         obj.remainingTime = --currentRemTime + "d";
         obj.summPercent +=
-          ((obj.summAmount / 100 / Math.log10(obj.summAmount)) * obj.index) /
+          (Math.log10(obj.summAmount) * obj.index * obj.summAmount) /
+          100 /
           parseInt(obj.totalTime);
         renderStacke(obj);
       }
@@ -141,15 +142,15 @@
       function handleInput() {
         let inputValue = input.value;
         if (!+inputValue) {
-          console.log("введено не число!");
+          console.log("введено не число или 0!");
           return;
         }
         if (inputValue > stateConfig.amount) {
           console.log("У вас нет такой суммы!");
           return;
         }
-        if (inputValue < 1) {
-          console.log("Минимум можно положить 1 единицу криптовалюты");
+        if (inputValue < 1.01) {
+          console.log("Минимум можно положить 1.01 единицу криптовалюты");
           return;
         }
         inputValue = (+inputValue).toFixed(4);
