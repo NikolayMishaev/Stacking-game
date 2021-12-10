@@ -75,7 +75,7 @@
         flex: 2;
       }
       label {
-        margin-right: 20px;
+        margin-right: 10px;
         padding: 5px;
         border: 1px solid lightgrey;
         border-radius: 10px;
@@ -114,6 +114,10 @@
       </div>
       <div class="day-speed">
         <p>Выберите длительность одного дня в игре:</p>
+        <label
+          >100 мс
+          <input class="radio" type="radio" name="daySpeed" value="100" />
+        </label>
         <label
           >400 мс
           <input class="radio" type="radio" name="daySpeed" value="400" />
@@ -179,7 +183,7 @@
         message.style.opacity = "0";
       }
 
-      function addCoins() {
+      function addCoins(bigD) {
         if (stateConfig.stackSend) {
           showMessage(
             "После первой отправки монет в стейкинг, бесплатно получить их нельзя !"
@@ -191,7 +195,7 @@
           return;
         }
         stateConfig.amount +=
-          stateConfig.amount > 25 ? 0.5 / stateConfig.amount : 1;
+          stateConfig.amount > 25 ? 0.5 / stateConfig.amount : bigD ? 10 : 1;
         renderAmount();
       }
 
@@ -317,9 +321,8 @@
 
       radioButtons.forEach((i) => i.addEventListener("click", setSpeedDays));
 
-      document.addEventListener(
-        "keydown",
-        (e) => (e.key === "d" || e.key === "D") && addCoins()
+      document.addEventListener("keydown", (e) =>
+        e.key === "d" ? addCoins() : e.key === "D" ? addCoins(true) : ""
       );
 
       buttonSendStacking.addEventListener("click", handleInput);
