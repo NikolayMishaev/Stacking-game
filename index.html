@@ -49,13 +49,30 @@
         width: 100%;
         text-align: center;
         font-size: 17px;
-        margin-bottom: 25px;
+        margin: 15px 0;
+        min-height: 20px;
         color: red;
         border: 1px dashed red;
         padding: 10px;
         border-radius: 30px;
         opacity: 0;
         transition: all 1s;
+      }
+      label:hover {
+        cursor: pointer;
+      }
+      p {
+        margin: 0 0 5px 0;
+        width: 100%;
+        text-align: center;
+      }
+      .day-speed {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      label {
+        margin-right: 20px;
       }
 
     </style>
@@ -70,11 +87,20 @@
 каждое следующее нажатие d дает меньше дохода
 -->
     <main>
-      <div class="message">ddddddddd
+      <div class="day-speed">
+        <p>Выберите длительность одного дня в игре:</p>
+        <label>400 мс
+          <input class="radio" type="radio" name="daySpeed" value="400">
+        </label>
+        <label>1000 мс
+          <input class="radio" type="radio" name="daySpeed" checked value="1000">
+        </label>
+      </div>
+      <div class="message">
       </div>
       <div class="amount">0</div>
       <div class="staking">
-        <input type="text" placeholder="введи количество монет" />
+        <input class="input" type="text" placeholder="введи количество монет" />
         <select placeholder="выбери период">
           <option value="30d">30д</option>
           <option value="60d">60д</option>
@@ -93,17 +119,20 @@
     </main>
     <script>
       const amount = document.querySelector(".amount"),
-        buttonSendStacking = document.querySelector("button"),
-        input = document.querySelector("input"),
-        table = document.querySelector("table"),
-        select = document.querySelector("select"),
-        message = document.querySelector(".message");
+            buttonSendStacking = document.querySelector("button"),
+            input = document.querySelector(".input"),
+            table = document.querySelector("table"),
+            select = document.querySelector("select"),
+            message = document.querySelector(".message"),
+            radioButtons = document.querySelectorAll(".radio");
 
       const stateConfig = {
         amount: +amount.textContent,
         objStackes: {},
         currentStacke: 0,
-        stackSend: false
+        stackSend: false,
+        daysSpeed: 1000,
+        timerDays: null
       };
 
       function showMessage(text) {
@@ -216,6 +245,12 @@
         stateConfig.objStackes[`stack${stateConfig.currentStacke}`] = newObj;
       }
 
+      function setSpeedDays(e) {
+        stateConfig.daysSpeed = +e.target.value;
+        clearInterval(stateConfig.timerDays);
+        stateConfig.timerDays = setInterval(() => refreshStates(), stateConfig.daysSpeed);
+      }
+
       document.addEventListener(
         "keydown",
         (e) => (e.key === "d" || e.key === "D") && addCoins()
@@ -223,12 +258,15 @@
 
       buttonSendStacking.addEventListener("click", handleInput);
 
+      radioButtons.forEach(i=>i.addEventListener('click',setSpeedDays))
+
       let timerPercent = setInterval(
         () => deleteCoinsOneHunderedDays(),
         100000
       );
 
-      let timerDays = setInterval(() => refreshStates(), 1000);
+      stateConfig.timerDays = setInterval(() => refreshStates(), stateConfig.daysSpeed);
+      
     </script>
   </body>
 </html>
