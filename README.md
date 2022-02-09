@@ -1,6 +1,6 @@
 # Stacking-game
 ***
-[ссылка на gh-pages - запустить игру](https://nikolaymishaev.github.io/Stacking-game/index.html)
+[ссылка на запуск игры в браузере](https://nikolaymishaev.github.io/stacking-game/index.html)
 
 ## Описание
 - игра по добыче криптомонет
