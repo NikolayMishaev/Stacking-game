@@ -1,4 +1,4 @@
-# Stacking-game
+# Игра «Stacking»
 ***
 [ссылка на запуск игры в браузере](https://nikolaymishaev.github.io/stacking-game/index.html)
 
